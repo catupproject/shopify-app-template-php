@@ -1,0 +1,78 @@
+
+services:
+#  web-server-shopify:
+#    build:
+#      dockerfile: nginx.Dockerfile
+#      context: ./docker/nginx
+#    restart: always
+#    container_name: web-server-shopify
+#    image: nginx:1.20
+#    ports:
+#      - '80:80'
+#      - '8080:8080'
+#      - '9292:9292'
+#      - '3456:3456'
+#    volumes:
+#      - ./source:/app
+#      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+#    depends_on:
+#      - php-shopify
+
+  php-shopify:
+    container_name: php-shopify
+    build:
+      dockerfile: ./docker/php8.1/php.Dockerfile
+      context: .
+    volumes:
+      - ".:/app"
+      - ./docker/php8.1/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ~/.ssh:/root/.ssh
+    ports:
+      - '80:80'
+      - '8080:8080'
+      - '9292:9292'
+      - '3456:3456'
+      - '8088:8088'
+#      - '30000-35000:30000-35000'
+    depends_on:
+      - mysql-server-shopify
+    networks:
+      - catapp
+
+  mysql-server-shopify:
+    container_name: mysql-server-shopify
+#    image: mysql:5.7
+    image: mariadb:10.5.8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+      MYSQL_DATABASE: shopify
+    command:
+      - "mysqld"
+      - "--local_infile=true"
+    ports:
+      - "3332:3306"
+    networks:
+      - catapp
+
+#  phpmyadmin-shopify:
+#    container_name: phpmyadmin-shopify
+#    image: phpmyadmin/phpmyadmin:5.0.1
+#    restart: always
+#    environment:
+#      PMA_HOST: mysql-server-shopify
+#      PMA_USER: root
+#      PMA_PASSWORD: root
+#      UPLOAD_LIMIT: 50M
+#    ports:
+#      - "5024:80"
+#    depends_on:
+#      - mysql-server-shopify
+#    networks:
+#      - catapp
+
+networks: # use `docker network create gravity` to create it and `docker network rm gravity` to remove it
+  catapp:
+    driver: bridge
